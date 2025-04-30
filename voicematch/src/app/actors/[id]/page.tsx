@@ -1,5 +1,5 @@
 "use client";
-
+import Image from "next/image";
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { getVoiceActorById, getActorReviews } from "@/lib/api";
@@ -66,10 +66,12 @@ export default function ActorProfilePage() {
       <div className="bg-white rounded-lg shadow-md overflow-hidden mb-8">
         <div className="md:flex">
           <div className="md:flex-shrink-0 p-6">
-            <img
+            <Image
               src={actor.profile_picture_url || "/placeholder-avatar.png"}
               alt={actor.name}
-              className="h-48 w-48 object-cover rounded-full mx-auto"
+              width={192}
+              height={192}
+              className="object-cover rounded-full mx-auto"
             />
           </div>
           <div className="p-6 md:flex-1">
@@ -176,7 +178,7 @@ export default function ActorProfilePage() {
         onClose={() => setIsJobModalOpen(false)}
         className="relative z-50"
       >
-        <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+        <div className="fixed inset-0 bg-white/30" aria-hidden="true" />
         <div className="fixed inset-0 flex items-center justify-center p-4">
           <Dialog.Panel className="bg-white rounded-lg p-6 max-w-2xl w-full shadow-xl">
             <Dialog.Title className="text-xl font-semibold mb-4">

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { getVoiceActors } from "@/lib/api";
 import { VoiceActor, ActorFilterParams } from "@/types";
 import ActorCard from "@/components/marketplace/ActorCard";
@@ -80,12 +81,20 @@ export default function Home() {
               className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
-          <button
-            onClick={handleSearch}
-            className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-          >
-            Search
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={handleSearch}
+              className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            >
+              Search
+            </button>
+            <Link
+              href="/actors/new"
+              className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+            >
+              Add Voice Actor
+            </Link>
+          </div>
         </div>
 
         <div className="flex flex-wrap gap-2 mb-4">

@@ -1,6 +1,10 @@
 export type Category = "Animation" | "Commercial" | "Audiobook" | "Podcast"; // extend as needed
 export type VoiceGender = "Male" | "Female" | "Other";
-export type ReplyTime = "<1 hour" | "1-2 hours" | "1 day" | "2+ days";
+export type ReplyTime =
+  | "Within 1 hour"
+  | "Within 4 hours"
+  | "Within 24 hours"
+  | "Within 48 hours";
 
 export interface VoiceActor {
   id: string;

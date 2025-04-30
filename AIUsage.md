@@ -4,3 +4,4 @@
 4. To get understanding of why and how to do Supabase Storage Setup
 5. To determine and refine types created for the objects of this project
 6. To write structured code for the basic components
+7. To create forms and make the colour schema appropriate

@@ -1,26 +1,125 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  --color-primary-50: #f5f3ff;
+  --color-primary-100: #ede9fe;
+  --color-primary-200: #ddd6fe;
+  --color-primary-300: #c4b5fd;
+  --color-primary-400: #a78bfa;
+  --color-primary-500: #8b5cf6;
+  --color-primary-600: #7c3aed;
+  --color-primary-700: #6d28d9;
+  --color-primary-800: #5b21b6;
+  --color-primary-900: #4c1d95;
+
+  --color-bg-light: #ffffff;
+  --color-bg-dark: #f8fafc;
+  --color-surface-light: #ffffff;
+  --color-surface-dark: #f1f5f9;
+  --color-border-light: #e2e8f0;
+  --color-border-dark: #cbd5e1;
+  --color-text-primary: #1e293b;
+  --color-text-secondary: #64748b;
+  --color-text-disabled: #94a3b8;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  html {
+    @apply scroll-smooth;
+  }
+  body {
+    @apply bg-bg-light text-text-primary;
+  }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-bold;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  .btn {
+    @apply px-4 py-2 rounded-md font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2;
+  }
+
+  .btn-primary {
+    @apply bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500;
+  }
+
+  .btn-outline {
+    @apply border border-border-light bg-surface-light text-text-primary hover:bg-surface-dark focus:ring-primary-500;
+  }
+
+  .input {
+    @apply mt-1 block w-full rounded-md border-border-light bg-surface-light text-text-primary shadow-sm 
+    focus:border-primary-500 focus:ring-primary-500;
+  }
+
+  .select {
+    @apply mt-1 block w-full rounded-md border-border-light bg-surface-light text-text-primary shadow-sm 
+    focus:border-primary-500 focus:ring-primary-500;
+  }
+
+  .label {
+    @apply block text-sm font-medium text-text-primary;
+  }
+
+  .card {
+    @apply bg-surface-light rounded-lg shadow-sm border border-border-light overflow-hidden;
+  }
+
+  .container-section {
+    @apply max-w-6xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .section-title {
+    @apply text-3xl font-bold mb-8;
+  }
+
+  .technology-badge {
+    @apply bg-slate-100 text-slate-800 text-xs px-2 py-1 rounded;
+  }
+
+  /* Form validation styles */
+  .error-message {
+    @apply mt-1 text-sm text-red-600;
+  }
+
+  /* Loading spinner */
+  .spinner {
+    @apply animate-spin rounded-full border-2 border-border-light border-t-primary-600;
+  }
+}
+
+/* Animation keyframes */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 1s ease-out forwards;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.8s ease-out forwards;
+  opacity: 0;
 }
