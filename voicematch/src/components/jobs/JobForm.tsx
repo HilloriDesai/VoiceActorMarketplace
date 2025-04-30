@@ -14,6 +14,7 @@ interface JobFormProps {
 export default function JobForm({ actorId, onClose, onSuccess }: JobFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [scriptFile, setScriptFile] = useState<File | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const {
     register,
@@ -24,6 +25,7 @@ export default function JobForm({ actorId, onClose, onSuccess }: JobFormProps) {
   const onSubmit = async (data: NewJobInput) => {
     try {
       setIsSubmitting(true);
+      setSubmitError(null);
 
       let scriptUrl = "";
       if (scriptFile) {
@@ -31,28 +33,35 @@ export default function JobForm({ actorId, onClose, onSuccess }: JobFormProps) {
         scriptUrl = await uploadScript(scriptFile, fileName);
       }
 
-      const characterTraits = data.character_traits
-        .map((trait) => trait.trim())
-        .filter(Boolean);
+      const characterTraits = Array.isArray(data.character_traits)
+        ? data.character_traits
+            .map((trait: string) => trait.trim())
+            .filter(Boolean)
+        : [];
 
-      await createJob({
-        actor_id: actorId,
+      const result = await createJob({
         project_name: data.project_name,
+        actor_id: actorId,
         category: data.category,
         character_traits: characterTraits,
-        language: data.language,
-        accent: data.accent,
+        language: data.language || "",
+        accent: data.accent || "",
         voice_gender: data.voice_gender,
         script_url: scriptUrl,
-        estimated_length_minutes: data.estimated_length_minutes,
+        estimated_length_minutes: data.estimated_length_minutes || 0,
         deadline: data.deadline,
-        budget: data.budget,
-        approval_process: data.approval_process,
+        budget: data.budget || 0,
+        approval_process: data.approval_process || "",
       });
 
-      onSuccess();
+      if (result.success) {
+        onSuccess();
+      } else {
+        setSubmitError(result.errors.join(". "));
+      }
     } catch (error) {
       console.error("Error submitting job:", error);
+      setSubmitError("An unexpected error occurred. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -66,6 +75,12 @@ export default function JobForm({ actorId, onClose, onSuccess }: JobFormProps) {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      {submitError && (
+        <div className="p-4 bg-red-50 border border-red-200 rounded-md">
+          <p className="text-red-600">{submitError}</p>
+        </div>
+      )}
+
       <div>
         <label className="block text-sm font-medium text-gray-700">
           Project Name
@@ -89,7 +104,9 @@ export default function JobForm({ actorId, onClose, onSuccess }: JobFormProps) {
           Category
         </label>
         <select
-          {...register("category")}
+          {...register("category", {
+            required: "Category is required",
+          })}
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
         >
           <option value="">Select category</option>
@@ -99,6 +116,9 @@ export default function JobForm({ actorId, onClose, onSuccess }: JobFormProps) {
           <option value="E-Learning">E-Learning</option>
           <option value="Podcasts">Podcasts</option>
         </select>
+        {errors.category && (
+          <p className="mt-1 text-sm text-red-600">{errors.category.message}</p>
+        )}
       </div>
 
       <div>
@@ -107,7 +127,15 @@ export default function JobForm({ actorId, onClose, onSuccess }: JobFormProps) {
         </label>
         <input
           type="text"
-          {...register("character_traits")}
+          {...register("character_traits", {
+            setValueAs: (value: string) =>
+              value
+                ? value
+                    .split(",")
+                    .map((trait) => trait.trim())
+                    .filter(Boolean)
+                : [],
+          })}
           placeholder="e.g., Warm, Authoritative, Energetic"
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
         />
@@ -141,7 +169,9 @@ export default function JobForm({ actorId, onClose, onSuccess }: JobFormProps) {
           Voice Gender
         </label>
         <select
-          {...register("voice_gender")}
+          {...register("voice_gender", {
+            required: "Voice gender is required",
+          })}
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
         >
           <option value="">Select gender</option>
@@ -149,6 +179,11 @@ export default function JobForm({ actorId, onClose, onSuccess }: JobFormProps) {
           <option value="Female">Female</option>
           <option value="Any">Any</option>
         </select>
+        {errors.voice_gender && (
+          <p className="mt-1 text-sm text-red-600">
+            {errors.voice_gender.message}
+          </p>
+        )}
       </div>
 
       <div>
@@ -169,9 +204,21 @@ export default function JobForm({ actorId, onClose, onSuccess }: JobFormProps) {
           </label>
           <input
             type="number"
-            {...register("estimated_length_minutes", { valueAsNumber: true })}
+            {...register("estimated_length_minutes", {
+              valueAsNumber: true,
+              required: "Estimated length is required",
+              min: {
+                value: 1,
+                message: "Length must be at least 1 minute",
+              },
+            })}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
+          {errors.estimated_length_minutes && (
+            <p className="mt-1 text-sm text-red-600">
+              {errors.estimated_length_minutes.message}
+            </p>
+          )}
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700">
@@ -179,9 +226,16 @@ export default function JobForm({ actorId, onClose, onSuccess }: JobFormProps) {
           </label>
           <input
             type="date"
-            {...register("deadline")}
+            {...register("deadline", {
+              required: "Deadline is required",
+            })}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
+          {errors.deadline && (
+            <p className="mt-1 text-sm text-red-600">
+              {errors.deadline.message}
+            </p>
+          )}
         </div>
       </div>
 
@@ -191,9 +245,19 @@ export default function JobForm({ actorId, onClose, onSuccess }: JobFormProps) {
         </label>
         <input
           type="number"
-          {...register("budget", { valueAsNumber: true })}
+          {...register("budget", {
+            valueAsNumber: true,
+            required: "Budget is required",
+            min: {
+              value: 1,
+              message: "Budget must be greater than 0",
+            },
+          })}
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
         />
+        {errors.budget && (
+          <p className="mt-1 text-sm text-red-600">{errors.budget.message}</p>
+        )}
       </div>
 
       <div>
@@ -201,15 +265,22 @@ export default function JobForm({ actorId, onClose, onSuccess }: JobFormProps) {
           Approval Steps
         </label>
         <textarea
-          {...register("approval_process")}
+          {...register("approval_process", {
+            required: "Approval process is required",
+          })}
           rows={3}
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
           placeholder="Describe your approval process..."
         />
+        {errors.approval_process && (
+          <p className="mt-1 text-sm text-red-600">
+            {errors.approval_process.message}
+          </p>
+        )}
       </div>
 
       <div className="flex justify-end space-x-3 pt-4">
-        <Button variant="outline" onClick={onClose}>
+        <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
           Cancel
         </Button>
         <Button type="submit" disabled={isSubmitting}>

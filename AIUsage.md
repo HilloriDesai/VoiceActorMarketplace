@@ -5,3 +5,6 @@
 5. To determine and refine types created for the objects of this project
 6. To write structured code for the basic components
 7. To create forms and make the colour schema appropriate
+8. To make search and filtering better by introducing throttling
+9. To display profile picture from saved supabase bucket
+10. To beautify the UI

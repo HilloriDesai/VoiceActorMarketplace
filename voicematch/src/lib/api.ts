@@ -1,13 +1,17 @@
 import { supabase } from "./supabase";
-import { VoiceActor, Job, Review, ActorFilterParams } from "../types";
+import {
+  VoiceActor,
+  Job,
+  Review,
+  ActorFilterParams,
+  NewJobInput,
+} from "../types";
 import { v4 as uuidv4 } from "uuid";
 import {
   ALLOWED_IMAGE_TYPES,
   MAX_IMAGE_SIZE,
   ALLOWED_AUDIO_TYPES,
   MAX_AUDIO_SIZE,
-  ALLOWED_SCRIPT_TYPES,
-  MAX_SCRIPT_SIZE,
 } from "./constants";
 import { validateField, VALIDATION_RULES } from "./validations";
 
@@ -16,8 +20,9 @@ export async function getVoiceActors(filters?: ActorFilterParams) {
   let query = supabase.from("voice_actors").select("*");
 
   if (filters) {
-    if (filters.searchQuery) {
-      query = query.ilike("name", `%${filters.searchQuery}%`);
+    console.log("Filters:", filters);
+    if (filters.searchQuery && filters.searchQuery.trim()) {
+      query = query.ilike("name", `%${filters.searchQuery.trim()}%`);
     }
 
     if (filters.categories && filters.categories.length > 0) {
@@ -56,16 +61,7 @@ interface VoiceActorInput
     | "last_hired"
     | "completed_jobs"
   > {
-  description: string;
   hourly_rate?: number;
-}
-
-interface JobInput extends Omit<Job, "id" | "submitted_at" | "script_url"> {
-  title: string;
-  description: string;
-  budget: number;
-  deadline: string;
-  script_url?: string;
 }
 
 // Add new interfaces for validation results
@@ -87,14 +83,6 @@ export async function createActor(
     // Validate name
     const nameError = validateField("Name", actor.name, VALIDATION_RULES.name);
     if (nameError) validationErrors.push(nameError);
-
-    // Validate description
-    const descError = validateField(
-      "Description",
-      actor.description,
-      VALIDATION_RULES.description
-    );
-    if (descError) validationErrors.push(descError);
 
     // Validate categories
     const categoriesError = validateField(
@@ -146,7 +134,7 @@ export async function createActor(
 
       console.log("Starting profile picture upload...");
       const fileName = `${uuidv4()}-${profilePicture.name}`;
-      const { data: uploadData, error: uploadError } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from("profile-pictures")
         .upload(`pictures/${fileName}`, profilePicture);
 
@@ -157,7 +145,13 @@ export async function createActor(
           errors: ["Failed to upload profile picture. Please try again."],
         };
       }
-      profilePictureUrl = uploadData.path;
+
+      // Get the public URL for the uploaded file
+      const { data: publicUrlData } = supabase.storage
+        .from("profile-pictures")
+        .getPublicUrl(`pictures/${fileName}`);
+
+      profilePictureUrl = publicUrlData.publicUrl;
       console.log("Profile picture uploaded successfully:", profilePictureUrl);
     }
 
@@ -213,10 +207,9 @@ export async function createActor(
 
           console.log(`Uploading audio sample: ${sample.title}`);
           const fileName = `${uuidv4()}-${sample.file.name}`;
-          const { data: uploadData, error: uploadError } =
-            await supabase.storage
-              .from("audio-samples")
-              .upload(`samples/${fileName}`, sample.file);
+          const { error: uploadError } = await supabase.storage
+            .from("audio-samples")
+            .upload(`samples/${fileName}`, sample.file);
 
           if (uploadError) {
             console.error(
@@ -230,9 +223,15 @@ export async function createActor(
               ],
             };
           }
+
+          // Get the public URL for the uploaded audio file
+          const { data: publicUrlData } = supabase.storage
+            .from("audio-samples")
+            .getPublicUrl(`samples/${fileName}`);
+
           audioSamplesData.push({
             title: sample.title,
-            url: uploadData.path,
+            url: publicUrlData.publicUrl,
           });
           console.log(`Audio sample uploaded successfully: ${sample.title}`);
         }
@@ -293,34 +292,35 @@ export async function getActorReviews(actorId: string) {
 }
 
 // Jobs APIs
-export async function createJob(job: JobInput): Promise<ValidationResult<Job>> {
+export async function createJob(
+  job: NewJobInput
+): Promise<ValidationResult<Job>> {
   try {
     // Validate required fields
     const validationErrors: string[] = [];
 
-    // Validate title
-    const titleError = validateField(
-      "Title",
-      job.title,
+    // Validate project name
+    const projectNameError = validateField(
+      "Project name",
+      job.project_name,
       VALIDATION_RULES.title
     );
-    if (titleError) validationErrors.push(titleError);
+    if (projectNameError) validationErrors.push(projectNameError);
 
-    // Validate description
-    const descError = validateField(
-      "Description",
-      job.description,
-      VALIDATION_RULES.description
-    );
-    if (descError) validationErrors.push(descError);
+    // Validate category
+    if (!job.category) {
+      validationErrors.push("Category is required");
+    }
+
+    // Validate voice gender
+    if (!job.voice_gender) {
+      validationErrors.push("Voice gender is required");
+    }
 
     // Validate budget
-    const budgetError = validateField(
-      "Budget",
-      job.budget,
-      VALIDATION_RULES.budget
-    );
-    if (budgetError) validationErrors.push(budgetError);
+    if (!job.budget || job.budget <= 0) {
+      validationErrors.push("Budget must be greater than 0");
+    }
 
     // Validate deadline
     if (!job.deadline) {
@@ -333,25 +333,9 @@ export async function createJob(job: JobInput): Promise<ValidationResult<Job>> {
       }
     }
 
-    // Validate script if provided
-    if (job.script_url) {
-      const scriptFile = new File([job.script_url], "script");
-
-      if (!ALLOWED_SCRIPT_TYPES.includes(scriptFile.type)) {
-        validationErrors.push(
-          `Invalid script format. Allowed types are: ${ALLOWED_SCRIPT_TYPES.join(
-            ", "
-          )}`
-        );
-      }
-
-      if (scriptFile.size > MAX_SCRIPT_SIZE) {
-        validationErrors.push(
-          `Script file is too large. Maximum size allowed is ${
-            MAX_SCRIPT_SIZE / (1024 * 1024)
-          }MB`
-        );
-      }
+    // Validate estimated length
+    if (!job.estimated_length_minutes || job.estimated_length_minutes <= 0) {
+      validationErrors.push("Estimated length must be greater than 0");
     }
 
     if (validationErrors.length > 0) {
@@ -363,7 +347,10 @@ export async function createJob(job: JobInput): Promise<ValidationResult<Job>> {
 
     const { data, error } = await supabase
       .from("jobs")
-      .insert(job)
+      .insert({
+        ...job,
+        submitted_at: new Date().toISOString(),
+      })
       .select()
       .single();
 

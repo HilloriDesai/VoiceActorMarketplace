@@ -58,7 +58,7 @@ Build a fully functional Voice Actor Marketplace to:
   "audio_samples": [{ "title": "string", "url": "string" }],
   "certifications": ["string"],
   "last_online": "timestamp",
-  "typical_reply_time": "string",
+  "typical_reply_time": "string", //'<1 hour', '1-2 hours', '1 day', '2+ days'
   "last_hired": "timestamp",
   "completed_jobs": "int",
   "past_clients": ["string"]
