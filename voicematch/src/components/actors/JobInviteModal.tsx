@@ -24,7 +24,7 @@ export default function JobInviteModal({
         aria-hidden="true"
       />
       <div className="fixed inset-0 flex items-center justify-center p-4">
-        <Dialog.Panel className="bg-white rounded-xl p-8 max-w-2xl w-full shadow-xl">
+        <Dialog.Panel className="bg-white rounded-xl p-8 max-w-2xl w-full shadow-xl max-h-[90vh] overflow-y-auto">
           <Dialog.Title className="text-2xl font-semibold mb-6 text-gray-900">
             Invite {actorName} to a Job
           </Dialog.Title>

@@ -3,7 +3,7 @@
 import React from "react";
 import { useState, useEffect, useCallback } from "react";
 import { useDebouncedCallback } from "use-debounce";
-import { getVoiceActors } from "@/lib/api";
+import { getVoiceActors } from "@/lib/apis";
 import { VoiceActor, ActorFilterParams } from "@/types";
 import Navbar from "@/components/ui/Navbar";
 import SearchFilters from "@/components/marketplace/SearchFilters";

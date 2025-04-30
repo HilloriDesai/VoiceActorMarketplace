@@ -2,7 +2,7 @@
 import React from "react";
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import { getVoiceActorById, getActorReviews } from "@/lib/api";
+import { getVoiceActorById, getActorReviews } from "@/lib/apis";
 import { VoiceActor, Review } from "@/types";
 import Navbar from "@/components/ui/Navbar";
 import ActorProfile from "../../../components/actors/ActorProfile";

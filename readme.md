@@ -97,7 +97,7 @@ This application enables users to:
 
 ## Deployment
 
-The app is deployed on Vercel:
+The app is deployed using Vercel: https://voice-actor-marketplace.vercel.app
 
 ---
 
